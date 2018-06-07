@@ -1,8 +1,11 @@
 
-
+var listOfTemp;
+var listOfDates;
+var cityName;
+var cityAName;
 $('#getWeatherBtn').click(function(){
     $('#chart-container').hide();
-    $('table').hide();
+    // $('table').hide();
     console.log('Button clicked');
     const cityName = $('#cityInput').val();
     $.ajax({
@@ -28,7 +31,6 @@ $('#getWeatherBtn').click(function(){
 
 $('#getWeatherBtn').click(function(){
      $('#chart-container').hide();
-    //$('#chart-container').hide();
     $('table').hide();
     console.log('Button clicked');
     const cityAName = $('#cityInput1').val();
@@ -56,63 +58,86 @@ $('#getWeatherBtn').click(function(){
 
 $('#getForecastBtn').click(function() {
     $('table').hide();
-    $('chart-container').hide();
     const cityName = $('#cityInput').val();
+    const cityAName = $('#cityInput1').val();
     // Hit the API
     // On Success, parse the forecast information from the response
     // and update the options in the chart
     $.ajax({
         type: 'GET',
         url: `http://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=f2b56e061daddf18ec7dfd22f33dc62e`,
-        success: function(data) {
-            console.log('In success callback');
-            console.log(data);
+        success: function(res) {
+            // console.log('In first callback');
+            // console.log(data);
 
-            listOfDates = data.list.map((ele) => moment(ele.dt * 1000).format('dddd, h:mm a'));
-            console.log(listOfDates);
-            listOfTemp = data.list.map(ele => Math.round(ele.main.temp - 270));
-            console.log(listOfTemp);
-            plotChart(listOfTemp, listOfDates);
+            listOfDates = res.list.map((ele) => ele.dt);
+            //console.log(listOfDates);
+            listOfTemp = res.list.map((ele) => Math.round(ele.main.temp - 270));
+            // console.log(listOfTemp);
         },
         error: (err) => {
             console.log('In error callback');
             console.log(err);
         }
-    });
-})
+    }),
+    $.ajax({
+      type: 'GET',
+      url: `http://api.openweathermap.org/data/2.5/forecast?q=${cityAName}&appid=f2b56e061daddf18ec7dfd22f33dc62e`,
+      success: function(data) {
+        // console.log('In second callback');
+        // console.log(data);
 
-
-Highcharts.chart('chart-container', {
-    chart: {
-      type: 'line'
+        listOfTempA = data.list.map((ele) =>Math.round(ele.main.temp - 270));
+        // console.log(listOfTempA);
+        // console.log(listOfDates);
+        plotChart(listOfTemp, listOfDates,listOfTempA); 
     },
-    title: {
-      text: 'Next 5 days Temperature'
-    },
-    subtitle: {
-      text: 'Source: WorldClimate.com'
-    },
-    xAxis: {
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    },
-    yAxis: {
-      title: {
-        text: 'Temperature (°C)'
+     
+      error: (err) => {
+          console.log('In error callback');
+          console.log(err);
       }
-    },
-    plotOptions: {
-      line: {
-        dataLabels: {
-          enabled: true
-        },
-        enableMouseTracking: false
-      }
-    },
-    series: [{
-      name: '#getWeatherBtn(${cityName})',
-      data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
-    }, {
-      name: 'London',
-      data: [3.9, 4.2, 5.7, 8.5, 11.9, 15.2, 17.0, 16.6, 14.2, 10.3, 6.6, 4.8]
-    }]
   });
+  })
+  const plotChart = (tempArr, datesArr,tempArrA) => {
+    console.log(datesArr,tempArr,tempArrA);
+    const city1 = $('#cityInput').val();
+    const city2 = $('#cityInput1').val();
+    $('#chart-container').show();
+  Highcharts.chart('chart-container', {
+      chart: {
+        type: 'line'
+      },
+      title: {
+        text: 'Next 5 days Temperature'
+      },
+      subtitle: {
+        text: 'Source: WorldClimate.com'
+      },
+      xAxis: {
+        categories: datesArr
+      },
+      yAxis: {
+        title: {
+          text:'Temperature (°C)'
+        }
+      },
+      plotOptions: {
+        line: {
+          dataLabels: {
+            enabled: true
+          },
+          enableMouseTracking: false
+        }
+      },
+      series: [{
+        name: 'city1',
+        data: tempArr
+      }, {
+        name: 'city2',
+        data: tempArrA
+      }]
+    });
+  }
+  
+  
